@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern SIP Calculator</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --background: #ecf0f1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--background);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .calculator-body {
+            padding: 30px;
+        }
+
+        .input-card {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin: 15px 0;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+
+        .slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .calculate-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .calculate-btn:hover {
+            background: #219653;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-card {
+            background: var(--secondary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .result-card span {
+            float: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SIP Investment Calculator</h1>
+            <p>Plan your financial future</p>
+        </div>
+        
+        <div class="calculator-body">
+            <div class="input-card">
+                <div class="input-group">
+                    <label for="monthlyAmt">Monthly Investment (₹)</label>
+                    <input type="number" id="monthlyAmt" min="500" max="1000000" value="10000">
+                    <input type="range" class="slider" id="monthlySlider" min="500" max="1000000" value="10000">
+                </div>
+
+                <div class="input-group">
+                    <label for="years">Investment Period (Years)</label>
+                    <input type="number" id="years" min="1" max="40" value="10">
+                    <input type="range" class="slider" id="yearsSlider" min="1" max="40" value="10">
+                </div>
+
+                <div class="input-group">
+                    <label for="returnRate">Expected Return Rate (% p.a.)</label>
+                    <input type="number" id="returnRate" min="1" max="30" step="0.1" value="12">
+                    <input type="range" class="slider" id="rateSlider" min="1" max="30" step="0.1" value="12">
+                </div>
+
+                <button class="calculate-btn" onclick="calculateResults()">Calculate Returns</button>
+            </div>
+
+            <div class="results" id="resultsSection">
+                <div class="result-card">
+                    Total Investment: <span id="totalInv"></span>
+                </div>
+                <div class="result-card">
+                    Wealth Gained: <span id="wealthGain"></span>
+                </div>
+                <div class="result-card">
+                    Maturity Value: <span id="maturityVal"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sync sliders with input fields
+        const inputs = [
+            {input: 'monthlyAmt', slider: 'monthlySlider'},
+            {input: 'years', slider: 'yearsSlider'},
+            {input: 'returnRate', slider: 'rateSlider'}
+        ];
+
+        inputs.forEach(item => {
+            const input = document.getElementById(item.input);
+            const slider = document.getElementById(item.slider);
+            
+            input.addEventListener('input', () => {
+                slider.value = input.value;
+            });
+            
+            slider.addEventListener('input', () => {
+                input.value = slider.value;
+            });
+        });
+
+        function calculateResults() {
+            const monthlyAmt = parseFloat(document.getElementById('monthlyAmt').value);
+            const years = parseFloat(document.getElementById('years').value);
+            const returnRate = parseFloat(document.getElementById('returnRate').value);
+
+            if (!monthlyAmt || !years || !returnRate) {
+                alert('Please enter all values');
+                return;
+            }
+
+            const months = years * 12;
+            const monthlyRate = returnRate / 12 / 100;
+            
+            // SIP Future Value calculation
+            const futureValue = monthlyAmt * 
+                (((1 + monthlyRate) ** months - 1) / monthlyRate) * 
+                (1 + monthlyRate);
+            
+            const totalInvestment = monthlyAmt * months;
+            const wealthGained = futureValue - totalInvestment;
+
+            // Format numbers with Indian system
+            const formatNumber = (num) => {
+                return '₹' + num.toFixed(0).toString().replace(/\B(?=(?:\d{3})+(?!\d))/g, ",");
+            };
+
+            // Display results
+            document.getElementById('totalInv').textContent = formatNumber(totalInvestment);
+            document.getElementById('wealthGain').textContent = formatNumber(wealthGained);
+            document.getElementById('maturityVal').textContent = formatNumber(futureValue);
+            
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
